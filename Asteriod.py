@@ -288,11 +288,12 @@ class Game(arcade.Window):
         self.held_keys = set()
         self.score = 0
 
-        # TODO: declare anything here you need the game class to track
+        # Declare anything here you need the game class to track
         self.asteriods = []
         self.ship = Ship()
         self.bullets = []
         self.lives = 5
+        self.frame_count = 0
         self.game_over = False
         
         # loads 5 big meteors to the asteriod list
@@ -351,7 +352,10 @@ class Game(arcade.Window):
         Update each object in the game.
         :param delta_time: tells us how much time has actually elapsed
         """
+        self.frame_count += 1
+
         if not self.game_over:
+            
             self.check_keys()
             self.ship.updateShip()
             
@@ -359,10 +363,15 @@ class Game(arcade.Window):
             for fire in self.bullets:
                 fire.advance()
 
-            # TODO: Check for collisions
+                # Remove bullets after 60 frames
+                if self.frame_count == 60:
+                    self.bullets.remove(fire)
+                    self.frame_count = 0
+
+            # Check for collisions
             self.check_collisions()
 
-            # TODO: Tell everything to advance or move forward one step in time
+            # Tell everything to advance or move forward one step in time
                 
             for asteriod in self.asteriods:
                 asteriod.advance()
@@ -374,7 +383,8 @@ class Game(arcade.Window):
     def check_off_screen(self):
         for bullet in self.bullets:
             if bullet.is_off_screen(SCREEN_WIDTH, SCREEN_HEIGHT):
-                self.bullets.remove(bullet)
+                bullet.update()
+                # self.bullets.remove(bullet)
                 
         for asteriod in self.asteriods:
             if asteriod.is_off_screen(SCREEN_WIDTH, SCREEN_HEIGHT):
