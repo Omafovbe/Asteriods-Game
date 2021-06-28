@@ -288,12 +288,20 @@ class Game(arcade.Window):
         self.held_keys = set()
         self.score = 0
 
-        # TODO: declare anything here you need the game class to track
+        # Declare anything here you need the game class to track
         self.asteriods = []
         self.ship = Ship()
         self.bullets = []
         self.lives = 5
+        self.frame_count = 0
         self.game_over = False
+
+        # Sounds
+        self.laser_sound = arcade.load_sound("sounds/laser2.wav")
+        self.hit_sound1 = arcade.load_sound("sounds/hit1.wav")
+        self.hit_sound2 = arcade.load_sound("sounds/hit2.wav")
+        self.hit_sound3 = arcade.load_sound("sounds/hit3.wav")
+        self.game_over_sound = arcade.load_sound("sounds/gameover5.wav")
         
         # loads 5 big meteors to the asteriod list
         for i in range(INITIAL_ROCK_COUNT):
@@ -351,18 +359,31 @@ class Game(arcade.Window):
         Update each object in the game.
         :param delta_time: tells us how much time has actually elapsed
         """
+        
+
         if not self.game_over:
+            
             self.check_keys()
             self.ship.updateShip()
             
+            
+            
+                    
             # Fire(Move) the bullets
             for fire in self.bullets:
                 fire.advance()
+                self.frame_count += 1
+                # print(self.frame_count)
 
-            # TODO: Check for collisions
+                # Remove bullets after 60 frames
+                if self.frame_count > 60:
+                    self.bullets.remove(fire)
+                    self.frame_count = 0
+
+            # Check for collisions
             self.check_collisions()
 
-            # TODO: Tell everything to advance or move forward one step in time
+            # Tell everything to advance or move forward one step in time
                 
             for asteriod in self.asteriods:
                 asteriod.advance()
@@ -374,7 +395,8 @@ class Game(arcade.Window):
     def check_off_screen(self):
         for bullet in self.bullets:
             if bullet.is_off_screen(SCREEN_WIDTH, SCREEN_HEIGHT):
-                self.bullets.remove(bullet)
+                bullet.update()
+                # self.bullets.remove(bullet)
                 
         for asteriod in self.asteriods:
             if asteriod.is_off_screen(SCREEN_WIDTH, SCREEN_HEIGHT):
@@ -422,10 +444,12 @@ class Game(arcade.Window):
                             self.split_asteriod(asteriod)
                             asteriod.hit()
                             self.lives -= 1
+                            self.hit_sound3.play()
             # No more ship/player lives
             else:
                 self.ship.alive = False
                 self.game_over = True
+                self.game_over_sound.play()
         # Clear off the meteors from the screen
         self.clear_debris()
     
@@ -444,13 +468,16 @@ class Game(arcade.Window):
         
         if asteriod.size == 3:
             for i in range(3):
-            
-                rock = Asteriod(2)
+                if i == 0:
+                    rock = Asteriod(1)
+                else:
+                    rock = Asteriod(2)
                 rock.load_asteriod()
                 rock.center.x = point_x
                 rock.center.y = point_y
                 
                 self.asteriods.append(rock)
+                self.hit_sound1.play()
                 
         elif asteriod.size == 2:
             for i in range(3):
@@ -460,6 +487,7 @@ class Game(arcade.Window):
                 rock.center.y = point_y
                 
                 self.asteriods.append(rock)
+                self.hit_sound2.play()
         
     # remove destroyed ship, laser and dead meteors from the screen
     def clear_debris(self):
@@ -506,12 +534,13 @@ class Game(arcade.Window):
             self.held_keys.add(key)
 
             if key == arcade.key.SPACE:
-                # TODO: Fire the bullet here!
+                # Fire the bullet here!
                 
                 bullet = Bullet()
                 bullet.fire(self.ship.angle, self.ship.center)
                 
                 self.bullets.append(bullet)
+                arcade.play_sound(self.laser_sound)
 
             if key == arcade.key.RIGHT:
                 self.ship.turn_right()
