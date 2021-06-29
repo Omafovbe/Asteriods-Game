@@ -267,8 +267,10 @@ class Ship(MovingObject):
  
 
 
-
-class Game(arcade.Window):
+'''
+The Game class which handles all gaming functions
+'''
+class GameView(arcade.View):
     """
     This class handles all the game callbacks and interaction
     This class will then call the appropriate functions of
@@ -276,13 +278,13 @@ class Game(arcade.Window):
     You are welcome to modify anything in this class.
     """
 
-    def __init__(self, width, height):
+    def __init__(self):
         """
         Sets up the initial conditions of the game
         :param width: Screen width
         :param height: Screen height
         """
-        super().__init__(width, height)
+        super().__init__()
         arcade.set_background_color(arcade.color.SMOKY_BLACK)
 
         self.held_keys = set()
@@ -311,7 +313,7 @@ class Game(arcade.Window):
 
             rock.center.y = random.randrange(BOTTOM_LIMIT, TOP_LIMIT)
             rock.center.x = random.randrange(LEFT_LIMIT, RIGHT_LIMIT)
-               
+
             self.asteriods.append(rock)
         
         
@@ -553,6 +555,10 @@ class Game(arcade.Window):
 
             if key == arcade.key.DOWN:
                 self.ship.move(-SHIP_THRUST_AMOUNT)
+            
+            if key == arcade.key.ESCAPE:
+                pause_game = PauseView(self)
+                self.window.show_view(pause_game)
                         
 
     def on_key_release(self, key: int, modifiers: int):
@@ -561,13 +567,72 @@ class Game(arcade.Window):
         """
                         
         if key in self.held_keys:
-            self.ship.move(0)
+            # self.ship.move(0)
             self.held_keys.remove(key)
             
-                    
+'''
+Class to display a welcome screen before the game starts
+this uses the arcade View function and the mouse press is detected
+so as to start the game
+'''
+class MenuView(arcade.View):
+    def on_show(self):
+        arcade.set_background_color(arcade.color.BLACK_BEAN)
+
+    def on_draw(self):
+        arcade.start_render()
+
+        arcade.draw_text("Welcome", SCREEN_WIDTH/2, SCREEN_HEIGHT/2, arcade.color.FLORAL_WHITE, font_size=40, anchor_x="center")
+        arcade.draw_text("Click to Start Game", SCREEN_WIDTH/2, SCREEN_HEIGHT/2-55, arcade.color.FLORAL_WHITE, font_size=20, anchor_x="center")
+
+    def on_mouse_press(self, x: float, y: float, button: int, modifiers: int):
+        game = GameView()
+        self.window.show_view(game)
+
+'''
+Class to pause the current view in other for player 
+to attend to something else and return without losing the game.
+Also gives the avenue to restart game.
+'''
+class PauseView(arcade.View):
+    def __init__(self, view: GameView):
+        super().__init__()
+        self.game_view = view
+
+    def on_show(self):
+        arcade.set_background_color(arcade.color.SMOKY_BLACK)
+
+    def on_draw(self):
+        arcade.start_render()
+
+        player_ship = self.game_view.ship
+        player_ship.draw()
+
+        
+        arcade.draw_text("PAUSED", SCREEN_WIDTH/2, SCREEN_HEIGHT/2+50, arcade.color.WHITE, font_size=50, anchor_x="center")
+        arcade.draw_text("Esc to resume", SCREEN_WIDTH/2, SCREEN_HEIGHT/2, arcade.color.WHITE, font_size=20, anchor_x="center")
+        arcade.draw_text("Enter or 'R' to restart", SCREEN_WIDTH/2, SCREEN_HEIGHT/2-30, arcade.color.WHITE, font_size=20, anchor_x="center")
+        arcade.draw_text("M - return to Menu Screen", SCREEN_WIDTH/2, SCREEN_HEIGHT/2-60, arcade.color.WHITE, font_size=20, anchor_x="center")
+
+    def on_key_press(self, key: int, modifiers: int):
+        # Escape key is press, resume game
+        if key == arcade.key.ESCAPE:
+            self.window.show_view(self.game_view)
+        
+        # Enter key or 'R' key is pressed restart game
+        elif key == arcade.key.ENTER or key == arcade.key.R:
+            new_game = GameView()
+            self.window.show_view(new_game)
+
+        # Return to menu-view
+        elif key == arcade.key.M:
+            menu = MenuView()
+            self.window.show_view(menu)
 
 
 
 # Creates the game and starts it going
-window = Game(SCREEN_WIDTH, SCREEN_HEIGHT)
+window = arcade.Window(SCREEN_WIDTH, SCREEN_HEIGHT, 'Arcade Game')
+menu = MenuView()
+window.show_view(menu)
 arcade.run()
