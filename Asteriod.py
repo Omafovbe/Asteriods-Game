@@ -567,7 +567,7 @@ class GameView(arcade.View):
         """
                         
         if key in self.held_keys:
-            self.ship.move(0)
+            # self.ship.move(0)
             self.held_keys.remove(key)
             
 '''
