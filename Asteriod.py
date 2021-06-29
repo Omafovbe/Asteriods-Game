@@ -354,6 +354,7 @@ class GameView(arcade.View):
             lives_text = "Lives: Game Over"
         
         arcade.draw_text(lives_text, start_x=start_x, start_y=start_y-20, font_size=12, color=arcade.color.WHITE)
+        arcade.draw_text('Press Esc to pause game', start_x=start_x, start_y=start_y-40, font_size=12, color=arcade.color.WHITE)
 
 
     def on_update(self, delta_time):
